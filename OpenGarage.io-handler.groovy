@@ -18,6 +18,8 @@
  *
  */
 
+
+
 preferences {
   input("devicekey", "text",     title: "Device Key",   description: "Your OpenGarage.io device key")
   input("ipadd",       "text",     title: "IP address", description: "The IP address of your OpenGarage.io unit")
@@ -39,9 +41,12 @@ metadata {
 		standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
 			state "default", action: "refresh.refresh", icon: "st.secondary.refresh"
 		}
+        valueTile("dist", "device.dist", width: 2, height: 2) {
+            state "val", label:'${currentValue}', backgroundColor: "#000000", defaultState: true
+        }
 
 		main("garagedoor")
-		details(["garagedoor", "refresh"])
+		details(["garagedoor", "refresh", "dist"])
 	}
     simulator {
         // simulator metadata
@@ -149,6 +154,8 @@ def parse(description) {
     log.debug json
     
     def result
+    def resDist
+    
 	log.debug "before state.doorStatus: $state.doorStatus"
     
     // open / close event
@@ -174,12 +181,17 @@ def parse(description) {
         	state.doorStatus = 0
             result = createEvent(name: "garagedoor", value: "closed")
         }
+        if(json.dist){
+        	resDist = createEvent(name: "dist", value: json.dist)
+        }
     }
     
     log.debug "after state.doorStatus: $state.doorStatus"
     
-    return result
+    return [result, resDist]
 }
+
+
 
 private Long converIntToLong(ipAddress) {
 	long result = 0
